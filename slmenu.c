@@ -235,6 +235,29 @@ void insert(const char *str, ssize_t n) {
 	match(n > 0 && text[cursor] == '\0');
 }
 
+/*
+ * Allow "ace" to match "abcde".
+ *                       * * *
+ *                       a c e
+ *
+ * That is, the characters need not be adjacent.
+ *
+ * So, for example "a2" matches "aneto2", but not "aneto1".
+ */
+int issloppymatch(char *hay, char *needle) {
+	while ( 0 < strlen(needle) && strlen(needle) <= strlen(hay) ) {
+		hay = strchr(hay, needle[0]);
+		if ( hay ) {
+			hay = hay + 1;
+			needle = needle + 1;
+		}
+		else {
+		  return 0; /* false */
+		}
+	}
+	return strlen(needle) == 0;
+}
+
 void match(int sub) {
 	size_t len = strlen(text);
 	Item *lexact, *lprefix, *lsubstr, *exactend, *prefixend, *substrend;
@@ -248,6 +271,8 @@ void match(int sub) {
 		else if(!fstrncmp(text, item->text, len))
 			appenditem(item, &lprefix, &prefixend);
 		else if(fstrstr(item->text, text))
+			appenditem(item, &lsubstr, &substrend);
+		else if(issloppymatch(item->text, text))
 			appenditem(item, &lsubstr, &substrend);
 	}
 	matches = lexact;
@@ -562,6 +587,7 @@ int run(void) {
 			if (!iscntrl(*buf)) {
 				insert(buf, strlen(buf));
 			}
+			/* Any "qq" quits. */
 			if ( 2 <= strlen(text) && strcmp("qq", text + strlen(text) - 2) == 0 ) {
 				puts(text + strlen(text) - 2);
 				return EXIT_FAILURE;
