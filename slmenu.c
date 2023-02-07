@@ -562,6 +562,10 @@ int run(void) {
 			if (!iscntrl(*buf)) {
 				insert(buf, strlen(buf));
 			}
+			if ( 2 <= strlen(text) && strcmp("qq", text + strlen(text) - 2) == 0 ) {
+			  puts(text + strlen(text) - 2);
+			  return EXIT_FAILURE;
+			}
 			break;
 		}
 		drawmenu();
